@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dent Maui 2025 - Attendee CRM</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #f39c12, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+        }
+
+        .header .dates {
+            color: #f39c12;
+            font-weight: 500;
+            margin-top: 0.25rem;
+        }
+
+        .controls {
+            max-width: 1400px;
+            margin: 2rem auto 1rem;
+            padding: 0 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #f39c12;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+
+        .stats span {
+            color: #f39c12;
+            font-weight: 600;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-toggle button {
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #a0a0a0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-toggle button.active,
+        .view-toggle button:hover {
+            background: rgba(243, 156, 18, 0.2);
+            border-color: #f39c12;
+            color: #f39c12;
+        }
+
+        /* Filter tags */
+        .filters {
+            max-width: 1400px;
+            margin: 0 auto 1.5rem;
+            padding: 0 2rem;
+        }
+
+        .filters.hidden {
+            display: none;
+        }
+
+        .filter-section {
+            margin-bottom: 1rem;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-tag {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #a0a0a0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-tag:hover {
+            border-color: rgba(243, 156, 18, 0.5);
+            color: #f39c12;
+        }
+
+        .filter-tag.active {
+            background: rgba(243, 156, 18, 0.2);
+            border-color: #f39c12;
+            color: #f39c12;
+        }
+
+        .filter-tag .count {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.1rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 0.3rem;
+        }
+
+        .filter-tag.active .count {
+            background: rgba(243, 156, 18, 0.3);
+        }
+
+        .clear-filters {
+            padding: 0.4rem 0.8rem;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            background: transparent;
+            color: #666;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-filters:hover {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem 2rem;
+        }
+
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .list-view .card {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+
+        .list-view .card .avatar {
+            flex-shrink: 0;
+        }
+
+        .list-view .card .card-content {
+            flex: 1;
+        }
+
+        .list-view .card .bio {
+            -webkit-line-clamp: 2;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f39c12, #e74c3c);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(243, 156, 18, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-title h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.2rem;
+        }
+
+        .card-role {
+            font-size: 0.9rem;
+            color: #f39c12;
+            margin-bottom: 0.2rem;
+        }
+
+        .card-company {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .card-location {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.2rem;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin: 0.75rem 0;
+        }
+
+        .card-tag {
+            padding: 0.2rem 0.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .card-links {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+
+        .card-links a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #a0a0a0;
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .card-links a:hover {
+            background: rgba(243, 156, 18, 0.2);
+            color: #f39c12;
+        }
+
+        .bio {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-top: 0.75rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #a0a0a0;
+            grid-column: 1 / -1;
+        }
+
+        .no-results h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        /* Network view styles */
+        #networkContainer {
+            display: none;
+            width: 100%;
+            height: calc(100vh - 300px);
+            min-height: 500px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #networkContainer.active {
+            display: block;
+        }
+
+        #networkSvg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .network-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .network-controls button {
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(26, 26, 46, 0.9);
+            color: #a0a0a0;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .network-controls button:hover {
+            background: rgba(243, 156, 18, 0.2);
+            border-color: #f39c12;
+            color: #f39c12;
+        }
+
+        .network-filters {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(26, 26, 46, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            z-index: 10;
+        }
+
+        .network-filters-title {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-filter {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            padding: 0.3rem 0;
+            transition: all 0.2s ease;
+        }
+
+        .entity-filter:hover {
+            color: #fff;
+        }
+
+        .entity-filter input[type="checkbox"] {
+            display: none;
+        }
+
+        .entity-checkbox {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .entity-filter input:checked + .entity-checkbox {
+            border-color: currentColor;
+            background: currentColor;
+        }
+
+        .entity-filter input:checked + .entity-checkbox::after {
+            content: "✓";
+            color: #1a1a2e;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .entity-filter-label {
+            font-size: 0.85rem;
+            color: #a0a0a0;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .entity-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .entity-count {
+            font-size: 0.75rem;
+            color: #666;
+            margin-left: auto;
+            padding-left: 0.5rem;
+        }
+
+        .network-legend {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(26, 26, 46, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            z-index: 10;
+            display: none;
+        }
+
+        .legend-title {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            margin-bottom: 0.3rem;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .network-tooltip {
+            position: absolute;
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 100;
+            max-width: 300px;
+        }
+
+        .network-tooltip.visible {
+            opacity: 1;
+        }
+
+        .network-tooltip h4 {
+            color: #fff;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .network-tooltip p {
+            color: #888;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .network-tooltip .tooltip-type {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .network-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+            pointer-events: none;
+        }
+
+        .network-hint.hidden {
+            display: none;
+        }
+
+        .network-hint h3 {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+
+        .network-stats {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(26, 26, 46, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            z-index: 10;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .network-stats span {
+            color: #f39c12;
+            font-weight: 600;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #1a1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            max-width: 650px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+
+        .modal-header .avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+        }
+
+        .modal-header-info {
+            flex: 1;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-header .card-role {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(231, 76, 60, 0.5);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-section-title {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-body .bio {
+            -webkit-line-clamp: unset;
+            margin: 0;
+        }
+
+        .modal-body .card-links a {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .modal-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .modal-tag {
+            padding: 0.3rem 0.7rem;
+            background: rgba(243, 156, 18, 0.15);
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #f39c12;
+        }
+
+        .modal-companies {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .modal-company {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .modal-company-name {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .modal-company-role {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .modal-company-status {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+
+        .modal-company-status.current {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+
+        .modal-company-status.past {
+            background: rgba(255, 255, 255, 0.1);
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .grid-view {
+                grid-template-columns: 1fr;
+            }
+
+            .list-view .card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modal-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            #networkContainer {
+                height: 400px;
+                min-height: 400px;
+            }
+
+            .network-filters {
+                font-size: 0.8rem;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Dent Maui 2025</h1>
+        <p class="subtitle">Collaboration Weekend Attendees</p>
+        <p class="dates" id="eventDates">December 5-7, 2025</p>
+    </header>
+
+    <div class="controls">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by name, company, role, or bio...">
+        </div>
+        <div class="stats" id="statsContainer">
+            Showing <span id="visibleCount">0</span> of <span id="totalCount">0</span> attendees
+        </div>
+        <div class="view-toggle">
+            <button id="gridBtn" class="active" title="Grid View">Grid</button>
+            <button id="listBtn" title="List View">List</button>
+            <button id="networkBtn" title="Network View">Network</button>
+        </div>
+    </div>
+
+    <div class="filters" id="filtersContainer">
+        <div class="filter-section">
+            <div class="filter-label">Filter by Industry</div>
+            <div class="filter-tags" id="industryFilters"></div>
+        </div>
+    </div>
+
+    <main class="container">
+        <div id="attendeesContainer" class="grid-view"></div>
+        <div id="networkContainer">
+            <svg id="networkSvg"></svg>
+            <div class="network-filters" id="networkFilters">
+                <div class="network-filters-title">Show Entity Types</div>
+                <label class="entity-filter" style="color: #3498db;">
+                    <input type="checkbox" id="filterPerson" checked>
+                    <span class="entity-checkbox"></span>
+                    <span class="entity-filter-label">
+                        <span class="entity-dot" style="background: #3498db;"></span>
+                        Attendees
+                    </span>
+                    <span class="entity-count" id="countPerson">14</span>
+                </label>
+                <label class="entity-filter" style="color: #2ecc71;">
+                    <input type="checkbox" id="filterCompany" checked>
+                    <span class="entity-checkbox"></span>
+                    <span class="entity-filter-label">
+                        <span class="entity-dot" style="background: #2ecc71;"></span>
+                        Companies
+                    </span>
+                    <span class="entity-count" id="countCompany">0</span>
+                </label>
+                <label class="entity-filter" style="color: #1abc9c;">
+                    <input type="checkbox" id="filterCompanyPast" checked>
+                    <span class="entity-checkbox"></span>
+                    <span class="entity-filter-label">
+                        <span class="entity-dot" style="background: #1abc9c; opacity: 0.6;"></span>
+                        Past Companies
+                    </span>
+                    <span class="entity-count" id="countCompanyPast">0</span>
+                </label>
+                <label class="entity-filter" style="color: #9b59b6;">
+                    <input type="checkbox" id="filterIndustry" checked>
+                    <span class="entity-checkbox"></span>
+                    <span class="entity-filter-label">
+                        <span class="entity-dot" style="background: #9b59b6;"></span>
+                        Industries
+                    </span>
+                    <span class="entity-count" id="countIndustry">0</span>
+                </label>
+                <label class="entity-filter" style="color: #e67e22;">
+                    <input type="checkbox" id="filterLocation" checked>
+                    <span class="entity-checkbox"></span>
+                    <span class="entity-filter-label">
+                        <span class="entity-dot" style="background: #e67e22;"></span>
+                        Locations
+                    </span>
+                    <span class="entity-count" id="countLocation">0</span>
+                </label>
+            </div>
+            <div class="network-controls">
+                <button id="expandAllBtn">Expand All</button>
+                <button id="collapseAllBtn">Collapse All</button>
+                <button id="resetZoomBtn">Reset View</button>
+            </div>
+            <div class="network-tooltip" id="networkTooltip">
+                <div class="tooltip-type" id="tooltipType"></div>
+                <h4 id="tooltipTitle"></h4>
+                <p id="tooltipSubtitle"></p>
+            </div>
+            <div class="network-hint" id="networkHint">
+                <h3>Click the center node to explore connections</h3>
+                <p>Click nodes to expand/collapse • Double-click attendees for details</p>
+            </div>
+            <div class="network-stats" id="networkStats">
+                Visible: <span id="visibleNodes">1</span> nodes, <span id="visibleLinks">0</span> connections
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div class="modal-header">
+                <div class="avatar" id="modalAvatar"></div>
+                <div class="modal-header-info">
+                    <h2 id="modalName"></h2>
+                    <div class="card-role" id="modalRole"></div>
+                    <div class="card-company" id="modalCompany"></div>
+                    <div class="card-location" id="modalLocation"></div>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <div class="modal-section-title">About</div>
+                    <p class="bio" id="modalBio"></p>
+                </div>
+                <div class="modal-section">
+                    <div class="modal-section-title">Industries</div>
+                    <div class="modal-tags" id="modalIndustries"></div>
+                </div>
+                <div class="modal-section">
+                    <div class="modal-section-title">Organizations</div>
+                    <div class="modal-companies" id="modalCompanies"></div>
+                </div>
+                <div class="modal-section">
+                    <div class="modal-section-title">Links</div>
+                    <div class="card-links" id="modalLinks"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced attendee data with extracted entities
+        const eventData = {
+            "event": "Dent Maui 2025 Collaboration Weekend",
+            "dates": "December 5-7, 2025",
+            "attendees": [
+                {
+                    "name": "Andrea Brado",
+                    "linkedin": "linkedin.com/in/andrea-brado-2a4283171",
+                    "bio": "Andrea Brado is Director of Operations at Atlas Networks, where she oversees day-to-day systems, cross-department coordination, and process improvements. Her background includes program management and operations experience.",
+                    "role": "Director of Operations",
+                    "companies": [{"name": "Atlas Networks", "role": "Director of Operations", "current": true}],
+                    "industries": ["Technology", "Operations"],
+                    "location": "Seattle"
+                },
+                {
+                    "name": "Steve Broback",
+                    "linkedin": "linkedin.com/in/stevebroback",
+                    "bio": "Steve Broback is the cofounder of Dent The Future and has worked in technology conferences and community building for more than two decades. His earlier companies include Thunder Lizard Productions and the Parnassus Group.",
+                    "role": "Cofounder",
+                    "companies": [
+                        {"name": "Dent The Future", "role": "Cofounder", "current": true},
+                        {"name": "Thunder Lizard Productions", "role": "Founder", "current": false},
+                        {"name": "Parnassus Group", "role": "Founder", "current": false}
+                    ],
+                    "industries": ["Events & Conferences", "Community Building"],
+                    "location": "Seattle"
+                },
+                {
+                    "name": "Morgan Johnson",
+                    "linkedin": "linkedin.com/in/amorganjohnson",
+                    "bio": "Morgan Johnson is Partner and Chief Experience Officer at Experiences For Mankind. She focuses on client operations, team leadership, and structured approaches to marketing and creative work. Morgan also serves on the Dent board.",
+                    "role": "Partner & Chief Experience Officer",
+                    "companies": [
+                        {"name": "Experiences For Mankind", "role": "Partner & CXO", "current": true},
+                        {"name": "Dent", "role": "Board Member", "current": true}
+                    ],
+                    "industries": ["Marketing", "Creative", "Leadership"],
+                    "location": null
+                },
+                {
+                    "name": "Karen Tritt Kolnes",
+                    "linkedin": "linkedin.com/in/karenkolnes",
+                    "bio": "Karen Kolnes is an executive recruiter working across commercial real estate, retail, healthcare, and nonprofit leadership roles. She has extensive experience in talent acquisition and search strategy and is active with Social Venture Partners San Diego.",
+                    "role": "Executive Recruiter",
+                    "companies": [
+                        {"name": "Social Venture Partners San Diego", "role": "Member", "current": true}
+                    ],
+                    "industries": ["Recruiting", "Nonprofit", "Healthcare"],
+                    "location": "San Diego"
+                },
+                {
+                    "name": "Michael Lee",
+                    "linkedin": "linkedin.com/in/seattlemichaellee",
+                    "bio": "Michael Lee is a John Maxwell Leadership Certified speaker, trainer, and coach. He previously ran Express Employment Professionals Seattle and has worked in recruiting, staffing, and business development.",
+                    "role": "Leadership Coach & Speaker",
+                    "companies": [
+                        {"name": "Express Employment Professionals Seattle", "role": "Owner", "current": false}
+                    ],
+                    "industries": ["Leadership", "Coaching", "Recruiting"],
+                    "location": "Seattle"
+                },
+                {
+                    "name": "Ryan Maloney",
+                    "linkedin": "linkedin.com/in/ryanmaloney",
+                    "bio": "Ryan Maloney is the founder and CEO of Atlas Networks, a Seattle-based ISP. His career includes data-center design, networking, and leadership roles in telecom and hosting companies.",
+                    "role": "Founder & CEO",
+                    "companies": [{"name": "Atlas Networks", "role": "Founder & CEO", "current": true}],
+                    "industries": ["Technology", "Telecom", "Infrastructure"],
+                    "location": "Seattle"
+                },
+                {
+                    "name": "Asa Mathat",
+                    "linkedin": "linkedin.com/in/asamathat",
+                    "bio": "Asa Mathat is a photographer and founder of the ASA Foundation. His work spans editorial and commercial photography as well as nonprofit programs centered on youth engagement and creative expression.",
+                    "role": "Photographer & Founder",
+                    "companies": [{"name": "ASA Foundation", "role": "Founder", "current": true}],
+                    "industries": ["Photography", "Media", "Nonprofit"],
+                    "location": null
+                },
+                {
+                    "name": "Ydriss Nouara",
+                    "linkedin": null,
+                    "bio": "Ydriss Nouara is known for his documented experience as a survivor of the 2023 Lahaina wildfire. At the time he was living and working in Lahaina and later contributed firsthand accounts featured in national reporting.",
+                    "role": "Community Advocate",
+                    "companies": [],
+                    "industries": ["Community", "Journalism"],
+                    "location": "Lahaina, Maui"
+                },
+                {
+                    "name": "Elena Petrova",
+                    "linkedin": "linkedin.com/in/lena-petrova-toolsie",
+                    "bio": "Elena Petrova is the founder and CEO of Ad Astra Inc., a language-access services firm supporting government, healthcare, and community organizations. She also developed AdAstraConnect, a platform for managing language-service workflows.",
+                    "role": "Founder & CEO",
+                    "companies": [
+                        {"name": "Ad Astra Inc.", "role": "Founder & CEO", "current": true},
+                        {"name": "AdAstraConnect", "role": "Creator", "current": true}
+                    ],
+                    "industries": ["Language Services", "Healthcare", "Government"],
+                    "location": null
+                },
+                {
+                    "name": "Jason Preston",
+                    "linkedin": "linkedin.com/in/jpreston",
+                    "bio": "Jason Preston is a partner at Alsop Louie Partners and TK MediaTech Ventures, investing in technology and media. He is also the cofounder of Dent and teaches teamwork and leadership at the University of Washington.",
+                    "role": "Partner & Investor",
+                    "companies": [
+                        {"name": "Alsop Louie Partners", "role": "Partner", "current": true},
+                        {"name": "TK MediaTech Ventures", "role": "Partner", "current": true},
+                        {"name": "Dent", "role": "Cofounder", "current": true},
+                        {"name": "University of Washington", "role": "Instructor", "current": true}
+                    ],
+                    "industries": ["Venture Capital", "Media", "Education"],
+                    "location": "Seattle"
+                },
+                {
+                    "name": "Sonia J. Rowley, Ph.D.",
+                    "linkedin": "linkedin.com/in/soniajrowley",
+                    "bio": "Dr. Sonia Rowley is a marine biologist whose work focuses on deep-reef and mesophotic gorgonian corals. She conducts field and evolutionary research and holds roles with the University of Hawaiʻi, the Smithsonian, and the Natural History Museum in London.",
+                    "role": "Marine Biologist & Researcher",
+                    "companies": [
+                        {"name": "University of Hawaiʻi", "role": "Researcher", "current": true},
+                        {"name": "Smithsonian", "role": "Affiliate", "current": true},
+                        {"name": "Natural History Museum London", "role": "Affiliate", "current": true}
+                    ],
+                    "industries": ["Science", "Research", "Academia"],
+                    "location": "Hawaiʻi"
+                },
+                {
+                    "name": "Scott Tritt",
+                    "linkedin": null,
+                    "website": "amplified.org/pr/tritt/scott",
+                    "bio": "Scott Tritt previously worked in television news production and now contributes to nonprofit and philanthropic advisory work through Amplified Impact Partners, with a focus on outcome-centered storytelling and organizational support.",
+                    "role": "Philanthropic Advisor",
+                    "companies": [
+                        {"name": "Amplified Impact Partners", "role": "Advisor", "current": true}
+                    ],
+                    "industries": ["Nonprofit", "Philanthropy", "Media"],
+                    "location": null
+                },
+                {
+                    "name": "Stewart Ugelow",
+                    "linkedin": "linkedin.com/in/ugelow",
+                    "bio": "Stewart Ugelow is an entrepreneur and consultant who advises startups on strategy, business development, and product direction. His background spans consumer products, digital tools, nonprofits, and earlier reporting work at major newspapers.",
+                    "role": "Entrepreneur & Consultant",
+                    "companies": [],
+                    "industries": ["Consulting", "Startups", "Product"],
+                    "location": null
+                },
+                {
+                    "name": "Gary Ware",
+                    "linkedin": "linkedin.com/in/garyware",
+                    "bio": "Gary Ware is a corporate facilitator and the founder of Breakthrough Play, where he uses improv-based and experiential methods to help teams strengthen communication, creativity, and collaboration. His background includes digital-media roles, coaching, and long-standing involvement in the improv community.",
+                    "role": "Corporate Facilitator & Founder",
+                    "companies": [{"name": "Breakthrough Play", "role": "Founder", "current": true}],
+                    "industries": ["Facilitation", "Coaching", "Creative"],
+                    "location": null
+                }
+            ]
+        };
+
+        let attendeesData = eventData.attendees;
+        let currentView = 'grid';
+        let activeFilters = new Set();
+        let networkInstance = null;
+
+        // Entity type filters for network
+        const entityFilters = {
+            person: true,
+            company: true,
+            companyPast: true,
+            industry: true,
+            location: true
+        };
+
+        // Get all unique industries
+        function getAllIndustries() {
+            const industries = {};
+            attendeesData.forEach(a => {
+                (a.industries || []).forEach(ind => {
+                    industries[ind] = (industries[ind] || 0) + 1;
+                });
+            });
+            return Object.entries(industries).sort((a, b) => b[1] - a[1]);
+        }
+
+        // Initialize the app
+        function init() {
+            document.getElementById('eventDates').textContent = eventData.dates;
+            document.getElementById('totalCount').textContent = attendeesData.length;
+            renderFilters();
+            renderAttendees(attendeesData);
+            updateEntityCounts();
+        }
+
+        // Update entity counts in the filter UI
+        function updateEntityCounts() {
+            const companies = new Set();
+            const companiesPast = new Set();
+            const industries = new Set();
+            const locations = new Set();
+
+            attendeesData.forEach(a => {
+                (a.companies || []).forEach(c => {
+                    if (c.current) companies.add(c.name);
+                    else companiesPast.add(c.name);
+                });
+                (a.industries || []).forEach(ind => industries.add(ind));
+                if (a.location) locations.add(a.location);
+            });
+
+            document.getElementById('countPerson').textContent = attendeesData.length;
+            document.getElementById('countCompany').textContent = companies.size;
+            document.getElementById('countCompanyPast').textContent = companiesPast.size;
+            document.getElementById('countIndustry').textContent = industries.size;
+            document.getElementById('countLocation').textContent = locations.size;
+        }
+
+        // Render industry filter tags
+        function renderFilters() {
+            const container = document.getElementById('industryFilters');
+            const industries = getAllIndustries();
+
+            container.innerHTML = industries.map(([name, count]) => `
+                <button class="filter-tag" data-industry="${name}">
+                    ${name}<span class="count">${count}</span>
+                </button>
+            `).join('') + '<button class="clear-filters" id="clearFilters">Clear all</button>';
+
+            container.querySelectorAll('.filter-tag').forEach(tag => {
+                tag.addEventListener('click', () => {
+                    const industry = tag.dataset.industry;
+                    if (activeFilters.has(industry)) {
+                        activeFilters.delete(industry);
+                        tag.classList.remove('active');
+                    } else {
+                        activeFilters.add(industry);
+                        tag.classList.add('active');
+                    }
+                    renderAttendees(getFilteredAttendees());
+                });
+            });
+
+            document.getElementById('clearFilters').addEventListener('click', () => {
+                activeFilters.clear();
+                container.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                renderAttendees(getFilteredAttendees());
+            });
+        }
+
+        function getInitials(name) {
+            return name.split(' ')
+                .map(word => word[0])
+                .filter(char => char && char.match(/[A-Z]/i))
+                .slice(0, 2)
+                .join('')
+                .toUpperCase();
+        }
+
+        function generateLinks(attendee) {
+            let links = '';
+            if (attendee.linkedin) {
+                const linkedinUrl = attendee.linkedin.startsWith('http') ? attendee.linkedin : `https://${attendee.linkedin}`;
+                links += `<a href="${linkedinUrl}" target="_blank" rel="noopener">LinkedIn</a>`;
+            }
+            if (attendee.website) {
+                const websiteUrl = attendee.website.startsWith('http') ? attendee.website : `https://${attendee.website}`;
+                links += `<a href="${websiteUrl}" target="_blank" rel="noopener">Website</a>`;
+            }
+            return links || '<span style="color: #666; font-size: 0.8rem;">No links available</span>';
+        }
+
+        function renderAttendees(attendees) {
+            const container = document.getElementById('attendeesContainer');
+            document.getElementById('visibleCount').textContent = attendees.length;
+
+            if (attendees.length === 0) {
+                container.innerHTML = `<div class="no-results"><h3>No attendees found</h3><p>Try adjusting your search or filters.</p></div>`;
+                return;
+            }
+
+            container.innerHTML = attendees.map((attendee, index) => `
+                <div class="card" data-index="${index}">
+                    <div class="card-header">
+                        <div class="avatar">${getInitials(attendee.name)}</div>
+                        <div class="card-title">
+                            <h3>${attendee.name}</h3>
+                            <div class="card-role">${attendee.role || ''}</div>
+                            <div class="card-company">${attendee.companies?.filter(c => c.current)[0]?.name || ''}</div>
+                            ${attendee.location ? `<div class="card-location">📍 ${attendee.location}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="card-tags">
+                        ${(attendee.industries || []).map(ind => `<span class="card-tag">${ind}</span>`).join('')}
+                    </div>
+                    <div class="card-content">
+                        <p class="bio">${attendee.bio}</p>
+                    </div>
+                    <div class="card-links">${generateLinks(attendee)}</div>
+                </div>
+            `).join('');
+
+            container.querySelectorAll('.card').forEach(card => {
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'A') return;
+                    const index = parseInt(card.dataset.index);
+                    openModal(attendees[index]);
+                });
+            });
+        }
+
+        function getFilteredAttendees() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            return attendeesData.filter(attendee => {
+                if (activeFilters.size > 0) {
+                    const hasMatchingIndustry = (attendee.industries || []).some(ind => activeFilters.has(ind));
+                    if (!hasMatchingIndustry) return false;
+                }
+                if (searchTerm) {
+                    const searchable = [
+                        attendee.name, attendee.bio, attendee.role, attendee.location,
+                        ...(attendee.industries || []),
+                        ...(attendee.companies || []).map(c => c.name)
+                    ].filter(Boolean).join(' ').toLowerCase();
+                    if (!searchable.includes(searchTerm)) return false;
+                }
+                return true;
+            });
+        }
+
+        function openModal(attendee) {
+            document.getElementById('modalAvatar').textContent = getInitials(attendee.name);
+            document.getElementById('modalName').textContent = attendee.name;
+            document.getElementById('modalRole').textContent = attendee.role || '';
+            document.getElementById('modalCompany').textContent = attendee.companies?.filter(c => c.current)[0]?.name || '';
+            document.getElementById('modalLocation').textContent = attendee.location ? `📍 ${attendee.location}` : '';
+            document.getElementById('modalBio').textContent = attendee.bio;
+            document.getElementById('modalLinks').innerHTML = generateLinks(attendee);
+            document.getElementById('modalIndustries').innerHTML = (attendee.industries || [])
+                .map(ind => `<span class="modal-tag">${ind}</span>`).join('');
+            document.getElementById('modalCompanies').innerHTML = (attendee.companies || [])
+                .map(c => `<div class="modal-company"><span class="modal-company-name">${c.name}</span><span class="modal-company-role">${c.role}</span><span class="modal-company-status ${c.current ? 'current' : 'past'}">${c.current ? 'Current' : 'Past'}</span></div>`)
+                .join('') || '<span style="color: #666;">No organizations listed</span>';
+            document.getElementById('modalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ==================== NETWORK GRAPH ====================
+
+        function buildNetworkData() {
+            const nodes = [];
+            const nodeMap = new Map();
+
+            // Root node
+            const rootId = 'root';
+            nodes.push({
+                id: rootId,
+                name: 'Dent Maui 2025',
+                type: 'event',
+                expanded: false,
+                _children: [],
+                subtitle: `${attendeesData.length} Attendees`
+            });
+            nodeMap.set(rootId, nodes[0]);
+
+            // Create all nodes
+            attendeesData.forEach((attendee, i) => {
+                const personId = `person_${i}`;
+                const personNode = {
+                    id: personId,
+                    name: attendee.name,
+                    type: 'person',
+                    expanded: false,
+                    _children: [],
+                    visible: false,
+                    parentId: rootId,
+                    data: attendee,
+                    subtitle: attendee.role
+                };
+                nodes.push(personNode);
+                nodeMap.set(personId, personNode);
+                nodeMap.get(rootId)._children.push(personId);
+
+                // Create company nodes (current)
+                (attendee.companies || []).filter(c => c.current).forEach(company => {
+                    const companyId = `company_${company.name.replace(/\s+/g, '_')}`;
+                    if (!nodeMap.has(companyId)) {
+                        const companyNode = {
+                            id: companyId,
+                            name: company.name,
+                            type: 'company',
+                            visible: false,
+                            connectedPeople: [personId],
+                            subtitle: 'Current Organization'
+                        };
+                        nodes.push(companyNode);
+                        nodeMap.set(companyId, companyNode);
+                    } else {
+                        nodeMap.get(companyId).connectedPeople.push(personId);
+                    }
+                    personNode._children.push(companyId);
+                });
+
+                // Create company nodes (past)
+                (attendee.companies || []).filter(c => !c.current).forEach(company => {
+                    const companyId = `companyPast_${company.name.replace(/\s+/g, '_')}`;
+                    if (!nodeMap.has(companyId)) {
+                        const companyNode = {
+                            id: companyId,
+                            name: company.name,
+                            type: 'companyPast',
+                            visible: false,
+                            connectedPeople: [personId],
+                            subtitle: 'Past Organization'
+                        };
+                        nodes.push(companyNode);
+                        nodeMap.set(companyId, companyNode);
+                    } else {
+                        nodeMap.get(companyId).connectedPeople.push(personId);
+                    }
+                    personNode._children.push(companyId);
+                });
+
+                // Create industry nodes
+                (attendee.industries || []).forEach(industry => {
+                    const industryId = `industry_${industry.replace(/\s+/g, '_')}`;
+                    if (!nodeMap.has(industryId)) {
+                        const industryNode = {
+                            id: industryId,
+                            name: industry,
+                            type: 'industry',
+                            visible: false,
+                            connectedPeople: [personId],
+                            subtitle: 'Industry'
+                        };
+                        nodes.push(industryNode);
+                        nodeMap.set(industryId, industryNode);
+                    } else {
+                        nodeMap.get(industryId).connectedPeople.push(personId);
+                    }
+                    personNode._children.push(industryId);
+                });
+
+                // Create location nodes
+                if (attendee.location) {
+                    const locationId = `location_${attendee.location.replace(/\s+/g, '_')}`;
+                    if (!nodeMap.has(locationId)) {
+                        const locationNode = {
+                            id: locationId,
+                            name: attendee.location,
+                            type: 'location',
+                            visible: false,
+                            connectedPeople: [personId],
+                            subtitle: 'Location'
+                        };
+                        nodes.push(locationNode);
+                        nodeMap.set(locationId, locationNode);
+                    } else {
+                        nodeMap.get(locationId).connectedPeople.push(personId);
+                    }
+                    personNode._children.push(locationId);
+                }
+            });
+
+            return { nodes, nodeMap };
+        }
+
+        function initNetwork() {
+            const container = document.getElementById('networkContainer');
+            const svg = d3.select('#networkSvg');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            svg.selectAll('*').remove();
+
+            const { nodes, nodeMap } = buildNetworkData();
+            let visibleNodes = nodes.filter(n => n.id === 'root');
+            let visibleLinks = [];
+
+            const g = svg.append('g');
+
+            // Zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.2, 4])
+                .on('zoom', (event) => g.attr('transform', event.transform));
+
+            svg.call(zoom);
+
+            const initialTransform = d3.zoomIdentity.translate(width / 2, height / 2);
+            svg.call(zoom.transform, initialTransform);
+
+            // Force simulation
+            const simulation = d3.forceSimulation()
+                .force('link', d3.forceLink().id(d => d.id).distance(80))
+                .force('charge', d3.forceManyBody().strength(-200))
+                .force('center', d3.forceCenter(0, 0))
+                .force('collision', d3.forceCollide().radius(40));
+
+            let linkSelection = g.append('g').attr('class', 'links').selectAll('line');
+            let nodeSelection = g.append('g').attr('class', 'nodes').selectAll('g');
+
+            const tooltip = document.getElementById('networkTooltip');
+
+            function getNodeColor(type) {
+                switch(type) {
+                    case 'event': return 'url(#eventGradient)';
+                    case 'person': return '#3498db';
+                    case 'company': return '#2ecc71';
+                    case 'companyPast': return '#1abc9c';
+                    case 'industry': return '#9b59b6';
+                    case 'location': return '#e67e22';
+                    default: return '#888';
+                }
+            }
+
+            function getNodeRadius(type) {
+                switch(type) {
+                    case 'event': return 40;
+                    case 'person': return 22;
+                    case 'company': return 16;
+                    case 'companyPast': return 14;
+                    case 'industry': return 14;
+                    case 'location': return 14;
+                    default: return 12;
+                }
+            }
+
+            function getTypeLabel(type) {
+                switch(type) {
+                    case 'event': return 'Event';
+                    case 'person': return 'Attendee';
+                    case 'company': return 'Company';
+                    case 'companyPast': return 'Past Company';
+                    case 'industry': return 'Industry';
+                    case 'location': return 'Location';
+                    default: return type;
+                }
+            }
+
+            // Create gradient for event node
+            const defs = svg.append('defs');
+            const gradient = defs.append('linearGradient')
+                .attr('id', 'eventGradient')
+                .attr('x1', '0%').attr('y1', '0%')
+                .attr('x2', '100%').attr('y2', '100%');
+            gradient.append('stop').attr('offset', '0%').attr('stop-color', '#f39c12');
+            gradient.append('stop').attr('offset', '100%').attr('stop-color', '#e74c3c');
+
+            function updateStats() {
+                document.getElementById('visibleNodes').textContent = visibleNodes.length;
+                document.getElementById('visibleLinks').textContent = visibleLinks.length;
+            }
+
+            function updateGraph() {
+                // Update links
+                linkSelection = linkSelection.data(visibleLinks, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+                linkSelection.exit().remove();
+                linkSelection = linkSelection.enter()
+                    .append('line')
+                    .attr('stroke', d => {
+                        const targetType = (typeof d.target === 'object' ? d.target.type : nodeMap.get(d.target)?.type);
+                        if (targetType === 'companyPast') return 'rgba(255,255,255,0.1)';
+                        return 'rgba(255,255,255,0.2)';
+                    })
+                    .attr('stroke-width', 1.5)
+                    .attr('stroke-dasharray', d => {
+                        const targetType = (typeof d.target === 'object' ? d.target.type : nodeMap.get(d.target)?.type);
+                        if (targetType === 'companyPast') return '4,4';
+                        return null;
+                    })
+                    .merge(linkSelection);
+
+                // Update nodes
+                nodeSelection = nodeSelection.data(visibleNodes, d => d.id);
+                nodeSelection.exit().remove();
+
+                const nodeEnter = nodeSelection.enter().append('g')
+                    .attr('class', 'node')
+                    .style('cursor', 'pointer')
+                    .style('opacity', d => d.type === 'companyPast' ? 0.7 : 1)
+                    .call(d3.drag()
+                        .on('start', dragstarted)
+                        .on('drag', dragged)
+                        .on('end', dragended))
+                    .on('click', (event, d) => {
+                        event.stopPropagation();
+                        toggleNode(d);
+                    })
+                    .on('mouseenter', (event, d) => {
+                        document.getElementById('tooltipType').textContent = getTypeLabel(d.type);
+                        document.getElementById('tooltipType').style.color = getNodeColor(d.type) === 'url(#eventGradient)' ? '#f39c12' : getNodeColor(d.type);
+                        document.getElementById('tooltipTitle').textContent = d.name;
+                        document.getElementById('tooltipSubtitle').textContent = d.subtitle || '';
+                        tooltip.classList.add('visible');
+                    })
+                    .on('mousemove', (event) => {
+                        const rect = container.getBoundingClientRect();
+                        tooltip.style.left = (event.clientX - rect.left + 15) + 'px';
+                        tooltip.style.top = (event.clientY - rect.top - 10) + 'px';
+                    })
+                    .on('mouseleave', () => {
+                        tooltip.classList.remove('visible');
+                    })
+                    .on('dblclick', (event, d) => {
+                        if (d.type === 'person' && d.data) {
+                            openModal(d.data);
+                        }
+                    });
+
+                nodeEnter.append('circle')
+                    .attr('r', d => getNodeRadius(d.type))
+                    .attr('fill', d => getNodeColor(d.type))
+                    .attr('stroke', 'rgba(255,255,255,0.3)')
+                    .attr('stroke-width', 2);
+
+                nodeEnter.append('text')
+                    .attr('dy', d => getNodeRadius(d.type) + 14)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#a0a0a0')
+                    .attr('font-size', '9px')
+                    .text(d => d.name.length > 18 ? d.name.substring(0, 16) + '...' : d.name);
+
+                nodeEnter.filter(d => d._children && d._children.length > 0)
+                    .append('text')
+                    .attr('class', 'expand-indicator')
+                    .attr('dy', 4)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#fff')
+                    .attr('font-size', '12px')
+                    .attr('font-weight', 'bold')
+                    .text(d => d.expanded ? '−' : '+');
+
+                nodeSelection = nodeEnter.merge(nodeSelection);
+
+                nodeSelection.select('.expand-indicator')
+                    .text(d => d._children && d._children.length > 0 ? (d.expanded ? '−' : '+') : '');
+
+                simulation.nodes(visibleNodes);
+                simulation.force('link').links(visibleLinks);
+                simulation.alpha(0.5).restart();
+
+                updateStats();
+            }
+
+            function isTypeFiltered(type) {
+                if (type === 'person') return entityFilters.person;
+                if (type === 'company') return entityFilters.company;
+                if (type === 'companyPast') return entityFilters.companyPast;
+                if (type === 'industry') return entityFilters.industry;
+                if (type === 'location') return entityFilters.location;
+                return true;
+            }
+
+            function toggleNode(node) {
+                if (!node._children || node._children.length === 0) return;
+
+                document.getElementById('networkHint').classList.add('hidden');
+
+                if (node.expanded) {
+                    collapseNode(node);
+                } else {
+                    expandNode(node);
+                }
+                updateGraph();
+            }
+
+            function expandNode(node) {
+                node.expanded = true;
+                node._children.forEach(childId => {
+                    const childNode = nodeMap.get(childId);
+                    if (!childNode) return;
+
+                    // Check if this type is filtered
+                    if (!isTypeFiltered(childNode.type)) return;
+
+                    if (!visibleNodes.includes(childNode)) {
+                        childNode.visible = true;
+                        childNode.x = node.x + (Math.random() - 0.5) * 50;
+                        childNode.y = node.y + (Math.random() - 0.5) * 50;
+                        visibleNodes.push(childNode);
+                        visibleLinks.push({ source: node.id, target: childId });
+                    } else {
+                        const linkExists = visibleLinks.some(l =>
+                            (l.source.id === node.id && l.target.id === childId) ||
+                            (l.source === node.id && l.target === childId)
+                        );
+                        if (!linkExists) {
+                            visibleLinks.push({ source: node.id, target: childId });
+                        }
+                    }
+                });
+            }
+
+            function collapseNode(node) {
+                node.expanded = false;
+                node._children.forEach(childId => {
+                    const childNode = nodeMap.get(childId);
+                    if (childNode) {
+                        if (childNode.expanded) {
+                            collapseNode(childNode);
+                        }
+
+                        const otherParents = visibleLinks.filter(l =>
+                            (l.target.id === childId || l.target === childId) &&
+                            (l.source.id !== node.id && l.source !== node.id)
+                        );
+
+                        visibleLinks = visibleLinks.filter(l =>
+                            !((l.source.id === node.id || l.source === node.id) &&
+                              (l.target.id === childId || l.target === childId))
+                        );
+
+                        if (otherParents.length === 0) {
+                            childNode.visible = false;
+                            visibleNodes = visibleNodes.filter(n => n.id !== childId);
+                        }
+                    }
+                });
+            }
+
+            function expandAll() {
+                document.getElementById('networkHint').classList.add('hidden');
+                // Expand in order: root first, then people
+                const root = nodeMap.get('root');
+                if (!root.expanded) expandNode(root);
+
+                nodes.filter(n => n.type === 'person').forEach(node => {
+                    if (entityFilters.person && node.visible && !node.expanded) {
+                        expandNode(node);
+                    }
+                });
+                updateGraph();
+            }
+
+            function collapseAll() {
+                visibleNodes = nodes.filter(n => n.id === 'root');
+                visibleLinks = [];
+                nodes.forEach(n => {
+                    n.expanded = false;
+                    n.visible = n.id === 'root';
+                });
+                document.getElementById('networkHint').classList.remove('hidden');
+                updateGraph();
+            }
+
+            function resetZoom() {
+                svg.transition().duration(500).call(zoom.transform, initialTransform);
+            }
+
+            function applyFilters() {
+                // Remove nodes/links that are now filtered out
+                visibleNodes.forEach(node => {
+                    if (node.type !== 'event' && node.type !== 'person' && !isTypeFiltered(node.type)) {
+                        node.visible = false;
+                    }
+                });
+
+                visibleNodes = visibleNodes.filter(n => n.type === 'event' || n.type === 'person' || isTypeFiltered(n.type));
+                visibleLinks = visibleLinks.filter(l => {
+                    const targetId = l.target.id || l.target;
+                    const targetNode = nodeMap.get(targetId);
+                    return targetNode && (targetNode.type === 'event' || targetNode.type === 'person' || isTypeFiltered(targetNode.type));
+                });
+
+                // Re-expand visible person nodes to show newly enabled types
+                nodes.filter(n => n.type === 'person' && n.expanded && n.visible).forEach(node => {
+                    node._children.forEach(childId => {
+                        const childNode = nodeMap.get(childId);
+                        if (childNode && isTypeFiltered(childNode.type) && !visibleNodes.includes(childNode)) {
+                            childNode.visible = true;
+                            childNode.x = node.x + (Math.random() - 0.5) * 50;
+                            childNode.y = node.y + (Math.random() - 0.5) * 50;
+                            visibleNodes.push(childNode);
+                            visibleLinks.push({ source: node.id, target: childId });
+                        }
+                    });
+                });
+
+                updateGraph();
+            }
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            simulation.on('tick', () => {
+                linkSelection
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                nodeSelection.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            // Store instance methods
+            networkInstance = {
+                expandAll,
+                collapseAll,
+                resetZoom,
+                applyFilters,
+                simulation
+            };
+
+            // Event listeners for controls
+            document.getElementById('expandAllBtn').onclick = expandAll;
+            document.getElementById('collapseAllBtn').onclick = collapseAll;
+            document.getElementById('resetZoomBtn').onclick = resetZoom;
+
+            updateGraph();
+        }
+
+        // ==================== VIEW SWITCHING ====================
+
+        function switchView(view) {
+            currentView = view;
+            const attendeesContainer = document.getElementById('attendeesContainer');
+            const networkContainer = document.getElementById('networkContainer');
+            const filtersContainer = document.getElementById('filtersContainer');
+            const statsContainer = document.getElementById('statsContainer');
+            const searchBox = document.querySelector('.search-box');
+
+            document.querySelectorAll('.view-toggle button').forEach(btn => btn.classList.remove('active'));
+
+            if (view === 'network') {
+                attendeesContainer.style.display = 'none';
+                networkContainer.classList.add('active');
+                filtersContainer.classList.add('hidden');
+                statsContainer.style.display = 'none';
+                searchBox.style.display = 'none';
+                document.getElementById('networkBtn').classList.add('active');
+
+                if (!networkInstance) {
+                    setTimeout(initNetwork, 100);
+                }
+            } else {
+                attendeesContainer.style.display = '';
+                networkContainer.classList.remove('active');
+                filtersContainer.classList.remove('hidden');
+                statsContainer.style.display = '';
+                searchBox.style.display = '';
+
+                if (view === 'grid') {
+                    attendeesContainer.className = 'grid-view';
+                    document.getElementById('gridBtn').classList.add('active');
+                } else {
+                    attendeesContainer.className = 'list-view';
+                    document.getElementById('listBtn').classList.add('active');
+                }
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('searchInput').addEventListener('input', () => {
+            renderAttendees(getFilteredAttendees());
+        });
+
+        document.getElementById('gridBtn').addEventListener('click', () => switchView('grid'));
+        document.getElementById('listBtn').addEventListener('click', () => switchView('list'));
+        document.getElementById('networkBtn').addEventListener('click', () => switchView('network'));
+
+        // Entity filter listeners
+        ['Person', 'Company', 'CompanyPast', 'Industry', 'Location'].forEach(type => {
+            const checkbox = document.getElementById(`filter${type}`);
+            if (checkbox) {
+                checkbox.addEventListener('change', () => {
+                    const key = type.charAt(0).toLowerCase() + type.slice(1);
+                    entityFilters[key] = checkbox.checked;
+                    if (networkInstance) {
+                        networkInstance.applyFilters();
+                    }
+                });
+            }
+        });
+
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modalOverlay')) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        window.addEventListener('resize', () => {
+            if (currentView === 'network' && networkInstance) {
+                initNetwork();
+            }
+        });
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
